@@ -1,0 +1,82 @@
+<----------/ LISTA DE PRÉ-RESERVAS /---------->
+
+ Nome   --> Carlos Maia
+  ID    --> 1730031991
+ Data   --> 12/07/2023
+ Hora   --> 08:00
+Serviço --> Limpeza
+
+---------------------------
+
+ Nome   --> Ricardo Carvalho
+  ID    --> 621252978
+ Data   --> 12/07/2023
+ Hora   --> 09:00
+Serviço --> Limpeza
+
+---------------------------
+
+ Nome   --> Carlos Alegre
+  ID    --> 578334427
+ Data   --> 12/07/2023
+ Hora   --> 10:30
+Serviço --> Manutenção
+
+---------------------------
+
+ Nome   --> Gabriel Alegre
+  ID    --> 246480480
+ Data   --> 12/07/2023
+ Hora   --> 11:00
+Serviço --> Limpeza
+
+---------------------------
+
+ Nome   --> Paulo Peixoto
+  ID    --> 253854966
+ Data   --> 12/07/2023
+ Hora   --> 11:00
+Serviço --> Limpeza
+
+---------------------------
+
+ Nome   --> Bruno Ramos
+  ID    --> 255242507
+ Data   --> 12/07/2023
+ Hora   --> 11:30
+Serviço --> Manutenção
+
+---------------------------
+
+ Nome   --> Marcos Campos
+  ID    --> 952173066
+ Data   --> 12/07/2023
+ Hora   --> 11:30
+Serviço --> Manutenção
+
+---------------------------
+
+ Nome   --> Vanessa Borges
+  ID    --> 101960675
+ Data   --> 12/07/2023
+ Hora   --> 17:00
+Serviço --> Manutenção
+
+---------------------------
+
+ Nome   --> Gloria Esteves
+  ID    --> 466979142
+ Data   --> 12/07/2023
+ Hora   --> 17:00
+Serviço --> Limpeza
+
+---------------------------
+
+ Nome   --> Paulo Peixoto
+  ID    --> 253854966
+ Data   --> 15/07/2023
+ Hora   --> 11:30
+Serviço --> Limpeza
+
+---------------------------
+----------/ FIM /----------
