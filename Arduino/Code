@@ -1,0 +1,248 @@
+/*
+ * Fixed values
+ */
+int buttonPin = 2;
+int opStartPin = 3;
+int num1StartPin = 6;
+int num2StartPin = 10;
+
+int numPinCount = 4;
+int opPinCount = 3;
+
+int opEndPin = (opStartPin + opPinCount) - 1;
+int num1EndPin = (num1StartPin + numPinCount) - 1;
+int num2EndPin = (num2StartPin + numPinCount) - 1;
+
+unsigned long timeCountToReset = 1000; // Time the button should be pressed to reset the game in ms
+unsigned long gameDuration = 7000; // Time duration of the game in ms
+unsigned long debounceDelay = 50;
+
+/*
+ * State variables
+ */
+int buttonState;
+int lastButtonState;
+int buttonCount;
+
+int result;
+int randNum1;
+int randNum2;
+int randOperation;
+
+bool started;
+bool ratio50printed;
+bool ratio75printed;
+
+unsigned long lastDebounceTime;
+unsigned long gameStartTime;
+
+
+
+/*
+ * Arduino functions
+ */
+void setup() {
+  for(int i = opStartPin; i <= num2EndPin; i++) pinMode(i, OUTPUT); // Pins are consecutive
+  pinMode(buttonPin, INPUT_PULLUP);
+  Serial.begin(9600);
+  randomSeed(analogRead(0));
+
+  buttonState = HIGH;
+  lastButtonState = HIGH;
+  lastDebounceTime = 0;
+
+  restart();
+  startMsg();
+}
+
+void loop() {
+  guessButton();
+
+  if(!started) {
+    if(buttonCount == 0) beginGame();
+  } else { // Game is already ongoing
+    if(!ratio50printed) ratio50printed = printProgressRatio(50);
+    else if(!ratio75printed) ratio75printed = printProgressRatio(75);
+    else if(since(gameStartTime) >= gameDuration) endGame();
+  }
+}
+
+
+
+/*
+ * Main logic 
+ */
+void guessButton() {
+  int reading = digitalRead(buttonPin);
+  if(reading != lastButtonState) lastDebounceTime = millis();
+  lastButtonState = reading;
+
+  if(since(lastDebounceTime) <= debounceDelay) return;
+
+  if(reading == LOW) {
+    if(reading != buttonState) {
+      buttonCount += 1;
+      if(buttonCount >= 1) Serial.println("Count Press Button: " + String(buttonCount));
+    } else {
+      if(since(lastDebounceTime) > timeCountToReset) {
+        Serial.println("Bith Math Reset !");
+        animationScan();
+        restart();
+      }
+    } 
+  }
+
+  buttonState = reading;
+}
+
+void beginGame() {
+  // Generate random numbers and operation to the game
+  randNum1 = random(16);
+  randNum2 = random(16);
+  randOperation = random(3);
+
+  // Final result of operation 
+  result = operation(randNum1, randNum2, randOperation);
+  Serial.println("Let's Play!");
+
+  // Save game start time
+  gameStartTime = millis();
+
+  // Turn respective leds on
+  setNum1(randNum1);
+  setNum2(randNum2);
+  setOp(randOperation);
+
+  started = true;
+}
+
+void endGame() {
+  // Confirm if player wins or loses the game
+  if(result == buttonCount) {
+    Serial.println("Congratulations, You Win!");
+    animationWin();
+    animationScan();
+  } else {
+    Serial.println("You Lose! The right number was: " + String(result));
+    animationLose();
+  }
+
+  restart();
+  startMsg();
+}
+
+
+
+/*
+ * Auxiliary functions
+ */
+void startMsg() {
+  Serial.println("###  Welcome to the Bit Math Game !  ###");
+  Serial.println("Press Button to Start!");
+}
+
+int operation(int x, int y, int op) {
+  if(op == 2) return x & y;
+  else if(op == 1) return x | y;
+  else return x ^ y;  // op == 0
+}
+
+void restart() {
+  buttonCount = -1;
+  started = false;
+  ratio50printed = false;
+  ratio75printed = false;
+}
+
+// Returns true if printed
+bool printProgressRatio(int r) {
+  bool ret = since(gameStartTime) >= (gameDuration*r)/100;
+  if(ret) Serial.println("Elapsed Ratio " + String(r));
+  return ret;
+}
+
+unsigned long since(unsigned long start) { return millis() - start; }
+
+
+/*
+ * Animations
+ */
+void animationScan() { // "Varrimento" animation
+  resetNums();
+
+  for(int k = 0; k < 3; k++)
+    for(int i = 0; i < 2; i++)
+      for(int j = 0; j < numPinCount; j++) {
+        if(i == 0) {
+          digitalWrite(num1StartPin + j, HIGH);
+          digitalWrite(num2EndPin   - j, HIGH);
+        } else {
+          digitalWrite(num1EndPin   - j, LOW);
+          digitalWrite(num2StartPin + j, LOW);
+        }
+        delay(500);
+      }
+
+  resetOp();
+}
+
+void animationWin() {
+  for(int k = 0; k < 5; k++) {
+    resetAll();
+    delay(500);
+    setNum1(randNum1);
+    setNum2(randNum2);
+    setOpLed(randOperation, HIGH);
+    delay(500);
+  }
+  resetNums();
+}
+
+void animationLose() {
+  resetNums();
+  for(int i = 0; i < 5; i++) {
+    setOpLed(randOperation, LOW);
+    delay(500);
+    setOpLed(randOperation, HIGH);
+    delay(500);
+  }
+  setOpLed(randOperation, LOW);
+}
+
+
+/*
+ * Pins: Reset Operations
+ */
+void resetNum1() { resetPins(num1StartPin, numPinCount); }
+void resetNum2() { resetPins(num2StartPin, numPinCount); }
+void resetOp() { resetPins(opStartPin, opPinCount); }
+
+void resetNums() { resetNum1(); resetNum2(); }
+void resetAll() { resetNums(); resetOp(); }
+
+void resetPins(int base, int count) {
+  for(int i = 0; i < count; i++) digitalWrite(base + i, LOW);
+}
+
+
+/*
+ * Pins: Set Operations
+ */
+void setNum1(int num) { setLedsToNum(num1StartPin, num); }
+void setNum2(int num) { setLedsToNum(num2StartPin, num); }
+void setOp(int op) { resetOp(); setOpLed(op, HIGH); }
+
+void setLedsToNum(int base, int num) {
+  int val;
+  for(int i = 0; i < numPinCount; i++) {
+    if((num & (1 << i)) == 0) val = LOW;
+    else val = HIGH;
+    digitalWrite(base + i, val);
+  }
+}
+
+void setOpLed(int op, int val) { digitalWrite(opStartPin + op, val); }
+
+void setPins(int base, int count, int val) {
+  for(int i = 0; i < count; i++) digitalWrite(base + i, val);
+}
